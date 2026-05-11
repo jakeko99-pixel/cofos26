@@ -3,24 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Reto COFO Huesca (Corrección Táctil y Colores)</title>
+    <title>Reto COFO Huesca - Final</title>
     <style>
         :root { 
             --primary: #1e3a8a; 
             --accent: #10b981; 
-            --text-on-primary: #ffffff;
         }
 
         body { 
             margin: 0; 
             font-family: 'Segoe UI', sans-serif; 
             background: #eef2f7; 
-            overflow: hidden; /* Importante: bloquea scroll total */
+            overflow: hidden; 
             text-align: center;
-            -webkit-user-select: none; /* Bloquea selección texto */
+            -webkit-user-select: none;
             user-select: none;
-            touch-action: none; /* Bloquea gestos nativos del navegador */
-            overscroll-behavior: none; /* Bloquea efecto rebote */
+            touch-action: none;
+            overscroll-behavior: none;
         }
         
         /* Pantallas de flujo */
@@ -30,34 +29,33 @@
         }
 
         h1 { font-size: 2.5rem; margin-top: 0; color: var(--primary); }
-        @media (max-width: 600px) { h1 { font-size: 1.8rem; } }
-
         .instrucciones-caja {
             background: #f8fafc; border-left: 6px solid var(--primary); padding: 15px;
             border-radius: 8px; text-align: left; margin-bottom: 20px; max-width: 500px;
         }
-        .instrucciones-caja h2 { margin-top: 0; color: var(--primary); font-size: 1.3rem;}
-        .instrucciones-caja ul { font-size: 1rem; line-height: 1.4; padding-left: 20px;}
 
         .input-grande { padding: 12px; font-size: 1.1rem; border-radius: 8px; border: 2px solid #ccc; width: 80%; max-width: 300px; }
         .btn { background: var(--primary); color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; font-weight: bold; margin-top: 15px;}
         .btn-ranking { background: #db4437; }
 
         /* UI Juego */
-        #header { background: var(--primary); color: white; padding: 10px; position: relative; z-index: 10; }
-        #question-text { font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; }
-        #options-text { font-size: 0.9rem; opacity: 0.9; }
-        @media (min-width: 768px) { #question-text { font-size: 2rem; } #options-text { font-size: 1.3rem; } }
+        #header { background: var(--primary); color: white; padding: 15px; position: relative; z-index: 10; }
+        #question-text { font-size: 1.3rem; font-weight: bold; margin-bottom: 5px; }
+        #options-text { font-size: 1rem; opacity: 0.9; }
 
-        .hud-tag { position: fixed; top: 120px; padding: 5px 15px; border-radius: 20px; font-weight: bold; color: white; z-index: 10; }
-        #score-tag { right: 10px; background: var(--accent); }
-        #timer-tag { left: 10px; background: #ef4444; }
+        .hud-tag { position: fixed; top: 130px; padding: 5px 15px; border-radius: 20px; font-weight: bold; color: white; z-index: 10; min-width: 80px; }
+        #score-tag { right: 15px; background: var(--accent); }
+        #timer-tag { left: 15px; background: #ef4444; }
 
+        /* CONTENEDOR DEL JUEGO: Aquí ocurre el cambio de color */
         #game-container { 
-            position: relative; width: 100vw; height: 100vh;
-            overflow: hidden; display: none; background: #87CEEB;
-            touch-action: none; /* Asegura captura táctil */
-            transition: background-color 0.5s ease; /* RECUPERADO: Transición de color suave */
+            position: relative; 
+            width: 100vw; 
+            height: 100vh;
+            overflow: hidden; 
+            display: none; 
+            touch-action: none;
+            transition: background-color 0.8s ease; /* Transición suave de color */
         }
 
         .falling-letter { 
@@ -66,19 +64,17 @@
             display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         
-        /* --- CORRECCIÓN MOCHILA --- */
         #player { 
             position: absolute; 
-            bottom: 120px; /* Separación suelo */
+            bottom: 120px; 
             left: 50%; 
-            font-size: 80px; /* Tamaño */
-            width: 80px; /* Ancho físico */
-            height: 80px; /* Alto físico */
+            font-size: 80px; 
+            width: 80px; 
+            height: 80px; 
             display: flex; align-items: center; justify-content: center;
             transform: translateX(-50%); 
             will-change: left;
             z-index: 5;
-            cursor: pointer;
         }
 
         #qr-container { margin-top: 20px; display: none; text-align: center; }
@@ -93,12 +89,12 @@
         <h2>📜 Cómo jugar</h2>
         <ul>
             <li>Atrapa la letra correcta con la mochila (🎒).</li>
-            <li>Tienes <b>25 segundos</b>. Esquiva las incorrectas.</li>
+            <li>Tienes <b>25 segundos</b> por pregunta.</li>
             <li>En PC usa flechas, en móvil <b>arrastra con el dedo</b>.</li>
         </ul>
     </div>
     <input type="text" id="player-name" placeholder="Pseudónimo" class="input-grande" maxlength="15">
-    <button class="btn" onclick="startGame()">Empezar</button>
+    <button class="btn" onclick="startGame()">Empezar Juego</button>
     <div id="qr-container">
         <img id="qr-image" src="" alt="QR">
     </div>
@@ -118,9 +114,9 @@
 </div>
 
 <div id="end-screen" style="display:none;">
-    <h1>¡Puntuación!</h1>
+    <h1>¡Reto Terminado!</h1>
     <h2 id="final-msg"></h2>
-    <button class="btn btn-ranking" onclick="sendToGoogleForm()">🏆 Enviar al Ranking</button>
+    <button class="btn btn-ranking" onclick="sendToGoogleForm()">🏆 Registrar mi puntuación</button>
 </div>
 
 <script>
@@ -142,8 +138,15 @@
     const player = document.getElementById('player');
     const container = document.getElementById('game-container');
 
-    // RECUPERADO: Matriz de colores para el fondo
-    const bgColors = ['#87CEEB', '#FFDAB9', '#E6E6FA', '#F0FFF0', '#FFF0F5', '#F5F5DC'];
+    // COLORES MÁS VIVOS para que se note el cambio claramente
+    const bgColors = [
+        '#FFB6C1', // Rosa claro
+        '#98FB98', // Verde pálido
+        '#87CEFA', // Azul cielo
+        '#FFD700', // Oro
+        '#FF7F50', // Coral
+        '#DDA0DD'  // Ciruela
+    ];
 
     const questions = [
         { q: "1. ¿Asistencia mínima para certificar en Aragón?", options: "A: 75% | B: 85% | C: 90% | D: 100%", correct: "B" },
@@ -159,7 +162,6 @@
         document.getElementById('setup-screen').style.display = 'none';
         document.getElementById('game-ui').style.display = 'block';
         container.style.display = 'block';
-        // Forzar posición inicial
         player.style.left = "50%";
         loadQuestion();
     }
@@ -167,7 +169,7 @@
     function loadQuestion() {
         if (currentQ >= questions.length) return endGame();
 
-        // RECUPERADO: Cambio dinámico del color de fondo
+        // CAMBIO DE COLOR DE FONDO EXPLÍCITO
         const newColor = bgColors[currentQ % bgColors.length];
         container.style.backgroundColor = newColor;
 
@@ -176,9 +178,8 @@
         isGameActive = true;
         timeLeft = 25; 
         document.getElementById('timer-tag').innerText = `⏱️ ${timeLeft}s`;
-        document.getElementById('score-tag').innerText = score;
+        document.getElementById('score-tag').innerText = "Pts: " + score;
         
-        // Temporizador pregunta
         window.qTimer = setInterval(() => {
             timeLeft--;
             document.getElementById('timer-tag').innerText = `⏱️ ${timeLeft}s`;
@@ -190,7 +191,6 @@
             }
         }, 1000);
 
-        // Lluvia letras
         window.sTimer = setInterval(() => spawnLetter(), 700);
     }
 
@@ -216,11 +216,10 @@
             let pR = player.getBoundingClientRect();
             let lR = el.getBoundingClientRect();
 
-            // Colisión
             if (lR.bottom > pR.top && lR.top < pR.bottom && lR.right > pR.left && lR.left < pR.right) {
                 if (char === questions[currentQ].correct) score += 10;
                 else score = Math.max(0, score - 2);
-                document.getElementById('score-tag').innerText = score;
+                document.getElementById('score-tag').innerText = "Pts: " + score;
                 clearInterval(loop);
                 el.remove();
             }
@@ -228,9 +227,7 @@
         }, 20);
     }
 
-    // --- CORRECCIÓN CONTROLES TÁCTILES ROBUSTOS ---
-
-    // 1. Teclado PC (sigue funcionando)
+    // --- CONTROLES MÓVIL Y PC ---
     window.addEventListener('keydown', (e) => {
         if (!isGameActive) return;
         if (e.key === 'ArrowLeft') playerX = Math.max(8, playerX - 6);
@@ -238,50 +235,18 @@
         player.style.left = playerX + "%";
     });
 
-    // 2. Táctil (Móvil) - SISTEMA REESCRITO
     let isTouching = false;
-
-    // Función unificada para mover
-    function handleTouchMove(e) {
-        if (!isGameActive || !e.touches || e.touches.length === 0) return;
-        
-        // Previene cualquier comportamiento nativo (scroll, zoom)
-        if(e.cancelable && typeof e.preventDefault === 'function') {
-            e.preventDefault();
-        }
-        
-        // Obtenemos X del primer dedo respecto a la ventana
-        const clientX = e.touches[0].clientX;
-        const windowWidth = window.innerWidth;
-        
-        // Calculamos porcentaje y aplicamos límites estrictos
-        let newXPercent = (clientX / windowWidth) * 100;
-        
-        if (newXPercent < 8) newXPercent = 8; // Límite izquierdo
-        if (newXPercent > 92) newXPercent = 92; // Límite derecho
-        
-        playerX = newXPercent;
+    function handleTouch(e) {
+        if (!isGameActive || !e.touches[0]) return;
+        if(e.cancelable) e.preventDefault();
+        let x = (e.touches[0].clientX / window.innerWidth) * 100;
+        playerX = Math.min(Math.max(x, 8), 92);
         player.style.left = playerX + "%";
     }
 
-    // Escuchamos directamente en el contenedor del juego para máxima captura
-    container.addEventListener('touchstart', (e) => {
-        isTouching = true;
-        handleTouchMove(e); // Mueve instantáneamente al tocar
-    }, { passive: false });
-
-    container.addEventListener('touchmove', (e) => {
-        if(isTouching) handleTouchMove(e);
-    }, { passive: false });
-
-    container.addEventListener('touchend', () => {
-        isTouching = false;
-    });
-
-    container.addEventListener('touchcancel', () => {
-        isTouching = false;
-    });
-
+    container.addEventListener('touchstart', (e) => { isTouching = true; handleTouch(e); }, { passive: false });
+    container.addEventListener('touchmove', (e) => { if(isTouching) handleTouch(e); }, { passive: false });
+    container.addEventListener('touchend', () => { isTouching = false; });
 
     // --- FINAL ---
     function endGame() {
@@ -291,7 +256,7 @@
         document.getElementById('game-ui').style.display = 'none';
         container.style.display = 'none';
         document.getElementById('end-screen').style.display = 'flex';
-        document.getElementById('final-msg').innerText = `${playerName}: ${score} puntos.`;
+        document.getElementById('final-msg').innerText = `${playerName}, has conseguido ${score} puntos.`;
     }
 
     function sendToGoogleForm() {
