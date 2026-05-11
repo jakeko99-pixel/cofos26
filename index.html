@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reto COFO Huesca: DOCEO</title>
+    <style>
+        :root { 
+            --primary: #1e3a8a; 
+            --accent: #10b981; 
+            --text-on-primary: #ffffff;
+        }
+
+        body { 
+            margin: 0; 
+            font-family: 'Segoe UI', sans-serif; 
+            background: #eef2f7; 
+            overflow: hidden; 
+            text-align: center;
+            transition: background-color 0.5s ease;
+        }
+        
+        /* Pantallas */
+        #setup-screen, #end-screen { 
+            position: fixed; inset: 0; background: white; z-index: 100;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px;
+            overflow-y: auto;
+        }
+
+        /* Caja de instrucciones */
+        .instrucciones-caja {
+            background: #f8fafc;
+            border-left: 6px solid var(--primary);
+            padding: 20px 30px;
+            border-radius: 8px;
+            text-align: left;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            max-width: 600px;
+        }
+
+        .instrucciones-caja h2 { margin-top: 0; color: var(--primary); font-size: 1.5rem;}
+        .instrucciones-caja ul { font-size: 1.2rem; line-height: 1.6; padding-left: 20px; color: #334155;}
+        .instrucciones-caja li { margin-bottom: 10px; }
+
+        .input-grande {
+            padding: 15px; font-size: 1.3rem; border-radius: 8px; border: 2px solid #ccc; width: 300px; margin-bottom: 20px;
+        }
+
+        .btn { 
+            background: var(--primary); color: white; border: none; padding: 18px 36px; 
+            border-radius: 8px; cursor: pointer; font-size: 1.3rem; font-weight: bold;
+        }
+
+        .btn-ranking { background: #db4437; margin-top: 25px; }
+
+        /* UI del Juego */
+        #header { 
+            background: var(--primary); color: var(--text-on-primary); 
+            padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            position: relative; z-index: 10;
+        }
+        
+        #question-text { font-size: 2.2rem; font-weight: bold; margin-bottom: 15px; }
+        #options-text { font-size: 1.4rem; opacity: 0.9; font-weight: 600; }
+
+        .hud-tag { 
+            position: fixed; top: 140px; padding: 10px 25px; 
+            border-radius: 25px; font-weight: bold; font-size: 1.2rem; color: white; z-index: 10;
+        }
+        #score-tag { right: 20px; background: var(--accent); }
+        #timer-tag { left: 20px; background: #ef4444; }
+
+        #game-container { 
+            position: relative; width: 100vw; height: 100vh;
+            overflow: hidden; display: none; 
+            transition: background-color 0.5s ease;
+        }
+
+        .falling-letter { 
+            position: absolute; font-size: 35px; font-weight: bold; 
+            background: white; border-radius: 50%; width: 65px; height: 65px; 
+            display: flex; align-items: center; justify-content: center; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        #player { 
+            position: absolute; 
+            bottom: 120px; 
+            left: 50%; 
+            font-size: 90px; 
+            transform: translateX(-50%); 
+        }
+
+        /* Contenedor del QR */
+        #qr-container {
+            margin-top: 30px;
+            padding: 15px;
+            background: white;
+            border: 2px dashed #cbd5e1;
+            border-radius: 10px;
+            display: none; /* Se activa por JS si está online */
+        }
+        #qr-container p { margin: 0 0 10px 0; font-weight: bold; color: #64748b;}
+    </style>
+</head>
+<body>
+
+<div id="setup-screen">
+    <h1 style="font-size: 3rem; margin-bottom: 10px;">🎒 Reto COFO: Especial DOCEO</h1>
+    
+    <div class="instrucciones-caja">
+        <h2>📜 Instrucciones del Reto</h2>
+        <ul>
+            <li><b>El Objetivo:</b> Lee la pregunta superior y atrapa con tu mochila (🎒) la letra que contenga la respuesta correcta.</li>
+            <li><b>El Tiempo:</b> Tienes <b>25 segundos</b> por pregunta. ¡Las letras no pararán de caer, esquiva las incorrectas!</li>
+            <li><b>Los Controles:</b> Usa las <b>flechas del teclado</b> (⬅️ y ➡️) para moverte de lado a lado.</li>
+            <li><b>El Final:</b> Al terminar, pulsa el botón rojo para enviar tu nota al Ranking general.</li>
+        </ul>
+    </div>
+
+    <input type="text" id="player-name" placeholder="Escribe tu Pseudónimo aquí" class="input-grande">
+    <button class="btn" onclick="startGame()">¡Empezar a Jugar!</button>
+
+    <div id="qr-container">
+        <p>📱 Escanea para jugar en tu móvil:</p>
+        <img id="qr-image" src="" alt="Código QR del juego">
+    </div>
+</div>
+
+<div id="game-ui" style="display:none;">
+    <div id="header">
+        <div id="question-text"></div>
+        <div id="options-text"></div>
+    </div>
+    <div id="score-tag" class="hud-tag">Puntos: 0</div>
+    <div id="timer-tag" class="hud-tag">⏱️ 25s</div>
+</div>
+
+<div id="game-container">
+    <div id="player">🎒</div>
+</div>
+
+<div id="end-screen" style="display:none;">
+    <h1 style="font-size: 3rem; color: var(--accent);">¡Reto Finalizado!</h1>
+    <h2 id="final-msg" style="font-size: 2rem;"></h2>
+    <p style="font-size: 1.2rem; margin-bottom: 5px;">Al pulsar el botón inferior, se abrirá un formulario.</p>
+    <p style="font-size: 1.2rem; margin-top: 0;"><b>Solo tienes que darle a "Enviar"</b> para aparecer en el ranking.</p>
+    <button class="btn btn-ranking" onclick="sendToGoogleForm()">🏆 Registrar mi nota en el Ranking</button>
+</div>
+
+<script>
+    // --- GENERADOR DE QR AUTOMÁTICO ---
+    window.onload = function() {
+        const currentUrl = window.location.href;
+        // Si la URL empieza por http o https (está subido a internet), generamos el QR
+        if (currentUrl.startsWith("http")) {
+            const qrContainer = document.getElementById('qr-container');
+            const qrImage = document.getElementById('qr-image');
+            // Usamos una API gratuita para generar el QR con la URL actual
+            qrImage.src = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(currentUrl);
+            qrContainer.style.display = "block";
+        }
+    };
+
+    // --- LÓGICA DEL JUEGO ---
+    let playerName = "";
+    let score = 0;
+    let currentQ = 0;
+    let isGameActive = false;
+    let timeLeft = 25; // TIEMPO RESTAURADO A 25 SEGUNDOS
+    let playerX = 50;
+
+    const bgColors = ['#87CEEB', '#FFDAB9', '#E6E6FA', '#F0FFF0', '#FFF0F5', '#F5F5DC'];
+
+    const questions = [
+        { q: "1. ¿Asistencia mínima para certificar en Aragón?", options: "A: 75% | B: 85% | C: 90% | D: 100%", correct: "B" },
+        { q: "2. Documento principal en junio en DOCEO para evaluar:", options: "A: P.I.F. | B: Acta firmas | C: La Memoria | D: Gastos", correct: "C" },
+        { q: "3. Obligatorio subir a DOCEO (horas no presenciales):", options: "A: Evidencias | B: Fotos catering | C: CVs | D: Vídeos", correct: "A" },
+        { q: "4. ¿Quién revisa en DOCEO y autoriza certificar?", options: "A: Dirección | B: Consejería | C: Mentoría CP | D: DP", correct: "C" },
+        { q: "5. Tarea en junio para planificar el nuevo PFC:", options: "A: Libros texto | B: Detección necesidades | C: Hoteles | D: Despidos", correct: "B" },
+        { q: "6. ¿Por qué enviar copia de memorias al Equipo Directivo?", options: "A: Archivo histórico | B: Pago DOCEO | C: Venta material | D: Adjuntar Memoria Final", correct: "D" }
+    ];
+
+    function startGame() {
+        playerName = document.getElementById('player-name').value.trim() || "Anónimo";
+        document.getElementById('setup-screen').style.display = 'none';
+        document.getElementById('game-ui').style.display = 'block';
+        document.getElementById('game-container').style.display = 'block';
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        if (currentQ >= questions.length) return endGame();
+        
+        const newColor = bgColors[currentQ % bgColors.length];
+        document.getElementById('game-container').style.backgroundColor = newColor;
+
+        document.getElementById('question-text').innerText = questions[currentQ].q;
+        document.getElementById('options-text').innerText = questions[currentQ].options;
+        
+        isGameActive = true;
+        timeLeft = 25; // TIEMPO RESTAURADO A 25 SEGUNDOS
+        document.getElementById('timer-tag').innerText = `⏱️ ${timeLeft}s`;
+        
+        let qTimer = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer-tag').innerText = `⏱️ ${timeLeft}s`;
+            if (timeLeft <= 0) {
+                clearInterval(qTimer);
+                clearInterval(sTimer);
+                currentQ++;
+                loadQuestion();
+            }
+        }, 1000);
+
+        let sTimer = setInterval(() => {
+            if (timeLeft > 0) spawnLetter();
+            else { clearInterval(sTimer); }
+        }, 600);
+    }
+
+    function spawnLetter() {
+        const letters = ['A', 'B', 'C', 'D'];
+        const char = letters[Math.floor(Math.random() * 4)];
+        const el = document.createElement('div');
+        el.className = 'falling-letter';
+        el.innerText = char;
+        el.style.left = (Math.random() * 80 + 10) + "%";
+        el.style.top = "-70px";
+        document.getElementById('game-container').appendChild(el);
+
+        let y = -70;
+        let speed = 4 + Math.random() * 3;
+        let loop = setInterval(() => {
+            y += speed;
+            el.style.top = y + "px";
+            
+            let pR = document.getElementById('player').getBoundingClientRect();
+            let lR = el.getBoundingClientRect();
+
+            if (lR.bottom > pR.top && lR.top < pR.bottom && lR.right > pR.left && lR.left < pR.right) {
+                if (char === questions[currentQ].correct) {
+                    score += 10;
+                } else {
+                    score = Math.max(0, score - 2);
+                }
+                document.getElementById('score-tag').innerText = "Puntos: " + score;
+                clearInterval(loop);
+                el.remove();
+            }
+            if (y > window.innerHeight) { clearInterval(loop); el.remove(); }
+        }, 20);
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') playerX = Math.max(5, playerX - 5);
+        if (e.key === 'ArrowRight') playerX = Math.min(95, playerX + 5);
+        document.getElementById('player').style.left = playerX + "%";
+    });
+
+    function endGame() {
+        isGameActive = false;
+        document.getElementById('game-ui').style.display = 'none';
+        document.getElementById('game-container').style.display = 'none';
+        document.getElementById('end-screen').style.display = 'flex';
+        document.getElementById('final-msg').innerText = `${playerName}, has conseguido ${score} puntos.`;
+    }
+
+    function sendToGoogleForm() {
+        const formId = "1FAIpQLSdnPa3moGcnx4kltvwL9IFxVgcUU7sntOjeNttbAe1leUbSoA";
+        const entryName = "entry.1083425001";
+        const entryScore = "entry.422197715";
+        
+        const url = `https://docs.google.com/forms/d/e/${formId}/viewform?usp=pp_url&${entryName}=${encodeURIComponent(playerName)}&${entryScore}=${score}`;
+        window.open(url, '_blank');
+    }
+</script>
+</body>
+</html>
