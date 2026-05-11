@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Reto COFO Huesca (Corrección Táctil)</title>
+    <title>Reto COFO Huesca (Corrección Táctil y Colores)</title>
     <style>
         :root { 
             --primary: #1e3a8a; 
@@ -57,6 +57,7 @@
             position: relative; width: 100vw; height: 100vh;
             overflow: hidden; display: none; background: #87CEEB;
             touch-action: none; /* Asegura captura táctil */
+            transition: background-color 0.5s ease; /* RECUPERADO: Transición de color suave */
         }
 
         .falling-letter { 
@@ -141,6 +142,9 @@
     const player = document.getElementById('player');
     const container = document.getElementById('game-container');
 
+    // RECUPERADO: Matriz de colores para el fondo
+    const bgColors = ['#87CEEB', '#FFDAB9', '#E6E6FA', '#F0FFF0', '#FFF0F5', '#F5F5DC'];
+
     const questions = [
         { q: "1. ¿Asistencia mínima para certificar en Aragón?", options: "A: 75% | B: 85% | C: 90% | D: 100%", correct: "B" },
         { q: "2. Documento principal en junio en DOCEO para evaluar:", options: "A: P.I.F. | B: Acta firmas | C: La Memoria | D: Gastos", correct: "C" },
@@ -162,6 +166,11 @@
 
     function loadQuestion() {
         if (currentQ >= questions.length) return endGame();
+
+        // RECUPERADO: Cambio dinámico del color de fondo
+        const newColor = bgColors[currentQ % bgColors.length];
+        container.style.backgroundColor = newColor;
+
         document.getElementById('question-text').innerText = questions[currentQ].q;
         document.getElementById('options-text').innerText = questions[currentQ].options;
         isGameActive = true;
