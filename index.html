@@ -3,32 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Reto COFO Huesca - Final</title>
+    <title>Reto COFO Huesca - Pro</title>
     <style>
-        :root { 
-            --primary: #1e3a8a; 
-            --accent: #10b981; 
-        }
+        :root { --primary: #1e3a8a; --accent: #10b981; }
 
         body { 
-            margin: 0; 
-            font-family: 'Segoe UI', sans-serif; 
-            background: #eef2f7; 
-            overflow: hidden; 
-            text-align: center;
-            -webkit-user-select: none;
-            user-select: none;
-            touch-action: none;
-            overscroll-behavior: none;
+            margin: 0; font-family: 'Segoe UI', sans-serif; background: #eef2f7; 
+            overflow: hidden; text-align: center; user-select: none;
+            touch-action: none; overscroll-behavior: none;
         }
         
         /* Pantallas de flujo */
-        #setup-screen, #end-screen { 
+        #setup-screen, #end-screen, #pre-question-screen { 
             position: fixed; inset: 0; background: white; z-index: 100;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px;
         }
 
-        h1 { font-size: 2.5rem; margin-top: 0; color: var(--primary); }
+        #pre-question-screen { background: #f1f5f9; z-index: 150; display: none; }
+        
+        h1 { font-size: 2.5rem; color: var(--primary); margin-bottom: 20px; }
+        .pre-q-text { font-size: 2rem; font-weight: bold; color: #1e293b; margin-bottom: 20px; }
+        .pre-q-options { font-size: 1.4rem; color: #475569; line-height: 1.6; }
+        
+        /* Cuenta atrás gigante */
+        #countdown-overlay {
+            font-size: 8rem; font-weight: 900; color: var(--primary);
+            margin-top: 30px; min-height: 150px;
+        }
+
         .instrucciones-caja {
             background: #f8fafc; border-left: 6px solid var(--primary); padding: 15px;
             border-radius: 8px; text-align: left; margin-bottom: 20px; max-width: 500px;
@@ -36,26 +38,19 @@
 
         .input-grande { padding: 12px; font-size: 1.1rem; border-radius: 8px; border: 2px solid #ccc; width: 80%; max-width: 300px; }
         .btn { background: var(--primary); color: white; border: none; padding: 15px 30px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; font-weight: bold; margin-top: 15px;}
-        .btn-ranking { background: #db4437; }
-
+        
         /* UI Juego */
-        #header { background: var(--primary); color: white; padding: 15px; position: relative; z-index: 10; }
-        #question-text { font-size: 1.3rem; font-weight: bold; margin-bottom: 5px; }
-        #options-text { font-size: 1rem; opacity: 0.9; }
+        #game-ui { position: absolute; top: 0; width: 100%; z-index: 50; }
+        #header { background: var(--primary); color: white; padding: 15px; }
+        #question-text { font-size: 1.2rem; font-weight: bold; }
 
-        .hud-tag { position: fixed; top: 130px; padding: 5px 15px; border-radius: 20px; font-weight: bold; color: white; z-index: 10; min-width: 80px; }
+        .hud-tag { position: fixed; top: 120px; padding: 5px 15px; border-radius: 20px; font-weight: bold; color: white; z-index: 10; }
         #score-tag { right: 15px; background: var(--accent); }
         #timer-tag { left: 15px; background: #ef4444; }
 
-        /* CONTENEDOR DEL JUEGO: Aquí ocurre el cambio de color */
         #game-container { 
-            position: relative; 
-            width: 100vw; 
-            height: 100vh;
-            overflow: hidden; 
-            display: none; 
-            touch-action: none;
-            transition: background-color 0.8s ease; /* Transición suave de color */
+            position: relative; width: 100vw; height: 100vh;
+            overflow: hidden; display: none; transition: background-color 0.8s ease;
         }
 
         .falling-letter { 
@@ -64,20 +59,16 @@
             display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         
+        /* MOCHILA SUBIDA */
         #player { 
             position: absolute; 
-            bottom: 120px; 
-            left: 50%; 
-            font-size: 80px; 
-            width: 80px; 
-            height: 80px; 
+            bottom: 180px; /* SUBIDA PARA MEJOR VISIBILIDAD */
+            left: 50%; font-size: 85px; width: 85px; height: 85px; 
             display: flex; align-items: center; justify-content: center;
-            transform: translateX(-50%); 
-            will-change: left;
-            z-index: 5;
+            transform: translateX(-50%); will-change: left; z-index: 5;
         }
 
-        #qr-container { margin-top: 20px; display: none; text-align: center; }
+        #qr-container { margin-top: 20px; display: none; }
         #qr-image { width: 130px; height: 130px; }
     </style>
 </head>
@@ -86,27 +77,29 @@
 <div id="setup-screen">
     <h1>🎒 Reto COFO</h1>
     <div class="instrucciones-caja">
-        <h2>📜 Cómo jugar</h2>
+        <h2>📜 Flujo del reto:</h2>
         <ul>
-            <li>Atrapa la letra correcta con la mochila (🎒).</li>
-            <li>Tienes <b>25 segundos</b> por pregunta.</li>
-            <li>En PC usa flechas, en móvil <b>arrastra con el dedo</b>.</li>
+            <li><b>7 seg:</b> Lee la pregunta en pantalla.</li>
+            <li><b>3 seg:</b> Cuenta atrás... ¡Prepárate!</li>
+            <li><b>15 seg:</b> Atrapa la letra correcta con la mochila.</li>
         </ul>
     </div>
     <input type="text" id="player-name" placeholder="Pseudónimo" class="input-grande" maxlength="15">
-    <button class="btn" onclick="startGame()">Empezar Juego</button>
-    <div id="qr-container">
-        <img id="qr-image" src="" alt="QR">
-    </div>
+    <button class="btn" onclick="startGame()">Empezar Reto</button>
+    <div id="qr-container"><img id="qr-image" src="" alt="QR"></div>
+</div>
+
+<div id="pre-question-screen">
+    <div id="pre-q-title" style="color: var(--primary); font-weight: bold; margin-bottom: 10px;">PREGUNTA</div>
+    <div id="pre-q-text" class="pre-q-text"></div>
+    <div id="pre-q-options" class="pre-q-options"></div>
+    <div id="countdown-overlay"></div>
 </div>
 
 <div id="game-ui" style="display:none;">
-    <div id="header">
-        <div id="question-text"></div>
-        <div id="options-text"></div>
-    </div>
+    <div id="header"><div id="question-text"></div></div>
     <div id="score-tag" class="hud-tag">0</div>
-    <div id="timer-tag" class="hud-tag">⏱️ 25s</div>
+    <div id="timer-tag" class="hud-tag">⏱️ 15s</div>
 </div>
 
 <div id="game-container">
@@ -116,11 +109,10 @@
 <div id="end-screen" style="display:none;">
     <h1>¡Reto Terminado!</h1>
     <h2 id="final-msg"></h2>
-    <button class="btn btn-ranking" onclick="sendToGoogleForm()">🏆 Registrar mi puntuación</button>
+    <button class="btn" style="background:#db4437" onclick="sendToGoogleForm()">🏆 Registrar mi puntuación</button>
 </div>
 
 <script>
-    // --- QR AUTOMÁTICO ---
     window.onload = function() {
         if (window.location.href.startsWith("http")) {
             document.getElementById('qr-image').src = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(window.location.href);
@@ -128,25 +120,15 @@
         }
     };
 
-    // --- LÓGICA JUEGO ---
     let playerName = "";
     let score = 0;
     let currentQ = 0;
     let isGameActive = false;
-    let timeLeft = 25; 
+    let timeLeft = 15; 
     let playerX = 50; 
     const player = document.getElementById('player');
     const container = document.getElementById('game-container');
-
-    // COLORES MÁS VIVOS para que se note el cambio claramente
-    const bgColors = [
-        '#FFB6C1', // Rosa claro
-        '#98FB98', // Verde pálido
-        '#87CEFA', // Azul cielo
-        '#FFD700', // Oro
-        '#FF7F50', // Coral
-        '#DDA0DD'  // Ciruela
-    ];
+    const bgColors = ['#FFB6C1', '#98FB98', '#87CEFA', '#FFD700', '#FF7F50', '#DDA0DD'];
 
     const questions = [
         { q: "1. ¿Asistencia mínima para certificar en Aragón?", options: "A: 75% | B: 85% | C: 90% | D: 100%", correct: "B" },
@@ -160,25 +142,50 @@
     function startGame() {
         playerName = document.getElementById('player-name').value.trim() || "COFO";
         document.getElementById('setup-screen').style.display = 'none';
-        document.getElementById('game-ui').style.display = 'block';
-        container.style.display = 'block';
-        player.style.left = "50%";
-        loadQuestion();
+        flowNextQuestion();
     }
 
-    function loadQuestion() {
+    function flowNextQuestion() {
         if (currentQ >= questions.length) return endGame();
+        
+        isGameActive = false;
+        const preScreen = document.getElementById('pre-question-screen');
+        const countdownEl = document.getElementById('countdown-overlay');
+        
+        // Cargar textos
+        document.getElementById('pre-q-text').innerText = questions[currentQ].q;
+        document.getElementById('pre-q-options').innerText = questions[currentQ].options;
+        countdownEl.innerText = "";
+        preScreen.style.display = 'flex';
+        document.getElementById('game-ui').style.display = 'none';
+        container.style.display = 'none';
 
-        // CAMBIO DE COLOR DE FONDO EXPLÍCITO
+        // 7 segundos de lectura + 3 de cuenta atrás = 10 total
+        let preTime = 10;
+        let preTimer = setInterval(() => {
+            preTime--;
+            if (preTime <= 3 && preTime > 0) {
+                countdownEl.innerText = preTime;
+            } else if (preTime === 0) {
+                countdownEl.innerText = "¡VAMOS!";
+            } else if (preTime < 0) {
+                clearInterval(preTimer);
+                preScreen.style.display = 'none';
+                startCapturePhase();
+            }
+        }, 1000);
+    }
+
+    function startCapturePhase() {
         const newColor = bgColors[currentQ % bgColors.length];
         container.style.backgroundColor = newColor;
-
         document.getElementById('question-text').innerText = questions[currentQ].q;
-        document.getElementById('options-text').innerText = questions[currentQ].options;
+        
+        document.getElementById('game-ui').style.display = 'block';
+        container.style.display = 'block';
         isGameActive = true;
-        timeLeft = 25; 
+        timeLeft = 15; // BAJADO A 15 SEGUNDOS
         document.getElementById('timer-tag').innerText = `⏱️ ${timeLeft}s`;
-        document.getElementById('score-tag').innerText = "Pts: " + score;
         
         window.qTimer = setInterval(() => {
             timeLeft--;
@@ -187,11 +194,11 @@
                 clearInterval(window.qTimer);
                 clearInterval(window.sTimer);
                 currentQ++;
-                loadQuestion();
+                flowNextQuestion();
             }
         }, 1000);
 
-        window.sTimer = setInterval(() => spawnLetter(), 700);
+        window.sTimer = setInterval(() => spawnLetter(), 600);
     }
 
     function spawnLetter() {
@@ -206,20 +213,19 @@
         container.appendChild(el);
 
         let y = -60;
-        let speed = (window.innerHeight * 0.006) + Math.random() * 2;
+        let speed = (window.innerHeight * 0.008) + Math.random() * 2;
         
         let loop = setInterval(() => {
             if (!isGameActive) { clearInterval(loop); el.remove(); return; }
             y += speed;
             el.style.top = y + "px";
-            
             let pR = player.getBoundingClientRect();
             let lR = el.getBoundingClientRect();
 
             if (lR.bottom > pR.top && lR.top < pR.bottom && lR.right > pR.left && lR.left < pR.right) {
                 if (char === questions[currentQ].correct) score += 10;
                 else score = Math.max(0, score - 2);
-                document.getElementById('score-tag').innerText = "Pts: " + score;
+                document.getElementById('score-tag').innerText = score;
                 clearInterval(loop);
                 el.remove();
             }
@@ -227,11 +233,11 @@
         }, 20);
     }
 
-    // --- CONTROLES MÓVIL Y PC ---
+    // --- CONTROLES ---
     window.addEventListener('keydown', (e) => {
         if (!isGameActive) return;
-        if (e.key === 'ArrowLeft') playerX = Math.max(8, playerX - 6);
-        if (e.key === 'ArrowRight') playerX = Math.min(92, playerX + 6);
+        if (e.key === 'ArrowLeft') playerX = Math.max(8, playerX - 7);
+        if (e.key === 'ArrowRight') playerX = Math.min(92, playerX + 7);
         player.style.left = playerX + "%";
     });
 
@@ -243,20 +249,16 @@
         playerX = Math.min(Math.max(x, 8), 92);
         player.style.left = playerX + "%";
     }
-
     container.addEventListener('touchstart', (e) => { isTouching = true; handleTouch(e); }, { passive: false });
     container.addEventListener('touchmove', (e) => { if(isTouching) handleTouch(e); }, { passive: false });
     container.addEventListener('touchend', () => { isTouching = false; });
 
-    // --- FINAL ---
     function endGame() {
         isGameActive = false;
-        clearInterval(window.qTimer);
-        clearInterval(window.sTimer);
         document.getElementById('game-ui').style.display = 'none';
         container.style.display = 'none';
         document.getElementById('end-screen').style.display = 'flex';
-        document.getElementById('final-msg').innerText = `${playerName}, has conseguido ${score} puntos.`;
+        document.getElementById('final-msg').innerText = `${playerName}: ${score} puntos.`;
     }
 
     function sendToGoogleForm() {
