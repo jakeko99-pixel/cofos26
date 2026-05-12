@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Reto COFO Huesca - Pro</title>
+    <title>Reto COFO Huesca - Final Ajustado</title>
     <style>
         :root { --primary: #1e3a8a; --accent: #10b981; }
 
@@ -59,11 +59,14 @@
             display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
         
-        /* MOCHILA SUBIDA */
+        /* MOCHILA AJUSTADA (Un poco más pequeña y un poco más baja) */
         #player { 
             position: absolute; 
-            bottom: 180px; /* SUBIDA PARA MEJOR VISIBILIDAD */
-            left: 50%; font-size: 85px; width: 85px; height: 85px; 
+            bottom: 150px; /* Bajada de 180px a 150px */
+            left: 50%; 
+            font-size: 75px; /* Reducida de 85px a 75px */
+            width: 75px;     /* Reducida de 85px a 75px */
+            height: 75px;    /* Reducida de 85px a 75px */
             display: flex; align-items: center; justify-content: center;
             transform: translateX(-50%); will-change: left; z-index: 5;
         }
@@ -81,7 +84,7 @@
         <ul>
             <li><b>7 seg:</b> Lee la pregunta en pantalla.</li>
             <li><b>3 seg:</b> Cuenta atrás... ¡Prepárate!</li>
-            <li><b>15 seg:</b> Atrapa la letra correcta con la mochila.</li>
+            <li><b>25 seg:</b> Atrapa la letra correcta con la mochila.</li>
         </ul>
     </div>
     <input type="text" id="player-name" placeholder="Pseudónimo" class="input-grande" maxlength="15">
@@ -99,7 +102,7 @@
 <div id="game-ui" style="display:none;">
     <div id="header"><div id="question-text"></div></div>
     <div id="score-tag" class="hud-tag">0</div>
-    <div id="timer-tag" class="hud-tag">⏱️ 15s</div>
+    <div id="timer-tag" class="hud-tag">⏱️ 25s</div>
 </div>
 
 <div id="game-container">
@@ -124,7 +127,7 @@
     let score = 0;
     let currentQ = 0;
     let isGameActive = false;
-    let timeLeft = 15; 
+    let timeLeft = 25; // ACTUALIZADO A 25
     let playerX = 50; 
     const player = document.getElementById('player');
     const container = document.getElementById('game-container');
@@ -184,7 +187,7 @@
         document.getElementById('game-ui').style.display = 'block';
         container.style.display = 'block';
         isGameActive = true;
-        timeLeft = 15; // BAJADO A 15 SEGUNDOS
+        timeLeft = 25; // SUBIDO A 25 SEGUNDOS
         document.getElementById('timer-tag').innerText = `⏱️ ${timeLeft}s`;
         
         window.qTimer = setInterval(() => {
